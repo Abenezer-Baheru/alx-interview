@@ -1,91 +1,69 @@
 #!/usr/bin/python3
-'''N Queens Challenge'''
+
+"""Method that calculates the non-attacking nqueens of
+n * n board - Check the README.md file for detailed info"""
 
 import sys
+
+
+def ChessBoard(n: int):
+    """Program that solves the N queens problem with
+    Backtracking algorithm
+    Args:
+        n (int): no of non-attacking queens to place on board.
+                (n)^2 determines the size of chess board
+    Return:
+        List[List[int]]: List of list of rows & columns of where
+        queens are placed.
+    """
+    result = list()
+
+    def checkBoard(row, col, col_in_row):
+        """Checks if queen can be placed without attacking other queens"""
+        for r in range(row):
+            if row - r == abs(col - col_in_row[r]):
+                return False
+        return True
+
+    def saveBoard(row, cols, col_in_row):
+        """Saves the current state (position of the queens) of the board"""
+        if row == n:
+            con_result = []
+            for r in range(n):
+                temp_result = []
+                for c in range(n):
+                    if c == col_in_row[r]:
+                        temp_result.append(r)
+                        temp_result.append(col_in_row[r])
+                        con_result.append(temp_result)
+                if len(con_result) == n:
+                    result.append(con_result)
+                    temp_result, con_result = [], []
+
+    def placeQueen(row, cols, col_in_row):
+        """Places N non-attacking queens on an N * N chessboard"""
+        saveBoard(row, cols, col_in_row)
+        for col in range(n):
+            if cols[col] == 0 and checkBoard(row, col, col_in_row):
+                cols[col] = 1
+                col_in_row[row] = col
+                placeQueen(row + 1, cols, col_in_row)
+                cols[col] = 0
+    placeQueen(0, [0]*n, [0]*n)
+    return result
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: nqueens N")
         sys.exit(1)
+    if sys.argv[1].isdigit() is False:
+        print("N must be a number")
+        sys.exit(1)
+    if int(sys.argv[1]) < 4:
+        print("N must be at least 4")
+        sys.exit(1)
 
-    try:
-        n = int(sys.argv[1])
-    except ValueError:
-        print('N must be a number')
-        exit(1)
-
-    if n < 4:
-        print('N must be at least 4')
-        exit(1)
-
-    solutions = []
-    placed_queens = []  # coordinates format [row, column]
-    stop = False
-    r = 0
-    c = 0
-
-    # iterate thru rows
-    while r < n:
-        goback = False
-        # iterate thru columns
-        while c < n:
-            # check is current column is safe
-            safe = True
-            for cord in placed_queens:
-                col = cord[1]
-                if(col == c or col + (r-cord[0]) == c or
-                        col - (r-cord[0]) == c):
-                    safe = False
-                    break
-
-            if not safe:
-                if c == n - 1:
-                    goback = True
-                    break
-                c += 1
-                continue
-
-            # place queen
-            cords = [r, c]
-            placed_queens.append(cords)
-            # if last row, append solution and reset all to last unfinished row
-            # and last safe column in that row
-            if r == n - 1:
-                solutions.append(placed_queens[:])
-                for cord in placed_queens:
-                    if cord[1] < n - 1:
-                        r = cord[0]
-                        c = cord[1]
-                for i in range(n - r):
-                    placed_queens.pop()
-                if r == n - 1 and c == n - 1:
-                    placed_queens = []
-                    stop = True
-                r -= 1
-                c += 1
-            else:
-                c = 0
-            break
-        if stop:
-            break
-        # on fail: go back to previous row
-        # and continue from last safe column + 1
-        if goback:
-            r -= 1
-            while r >= 0:
-                c = placed_queens[r][1] + 1
-                del placed_queens[r]  # delete previous queen coordinates
-                if c < n:
-                    break
-                r -= 1
-            if r < 0:
-                break
-            continue
-        r += 1
-
-    for idx, val in enumerate(solutions):
-        if idx == len(solutions) - 1:
-            print(val, end='')
-        else:
-            print(val)
+    nqueens = ChessBoard(int(sys.argv[1]))
+    for queens in nqueens:
+        print(queens)
